@@ -12,6 +12,9 @@
     <string name="movie_order_settings">movieOrderSetting</string>
     <string name="rank_order">RankOrder</string>
     <string name="select_rank_order">Select Rank Order</string>
+    <string name="mark_as_favorite">MARK AS\nFAVORITE</string>
+    <string name="pop_movies">Pop Movies</string>
+    <string name="movie_detail">movieDetail</string>
 
     <array name="rank_entries">
         <item>@string/popular_movie</item>
