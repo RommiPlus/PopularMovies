@@ -36,7 +36,11 @@ public class MovieAdapter extends ArrayAdapter<PopularMovie.ResultsBean> {
         ImageView iconView = (ImageView) convertView.findViewById(R.id.movie_image);
 
         // Add a new request to threadPool and when request callback set the the bitmap to ImageView
-        Picasso.with(getContext()).load(POPULAR_MOVIE + resultsBean.getPosterPath()).into(iconView);
+        Picasso.with(getContext())
+                .load(POPULAR_MOVIE + resultsBean.getPosterPath())
+                .placeholder(R.mipmap.ic_launcher)
+                .error(R.mipmap.ic_launcher)
+                .into(iconView);
         return convertView;
     }
 }

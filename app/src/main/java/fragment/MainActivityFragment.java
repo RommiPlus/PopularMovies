@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import adapter.MovieAdapter;
+import data.Constant;
 import model.PopularMovie;
 
 /**
@@ -132,19 +133,9 @@ public class MainActivityFragment extends Fragment {
             }
 
             try {
-                // Construct the URL for the OpenPopularMovie query
-                // Possible parameters are avaiable at OWM's forecast API page, at
-                // https://www.themoviedb.org/
-                final String MOVIE_BASE_URL =
-                        "http://api.themoviedb.org/3/movie/";
-                final String API_KEY = "api_key";
-                final String PAGE = "page";
-                // 	ISO 639-1 code.
-                final String LANGUAGE = "language";
-
-                Uri builtUri = Uri.parse(MOVIE_BASE_URL + urlSuffix).buildUpon()
-                        .appendQueryParameter(API_KEY, BuildConfig.OPEN_POPULAR_MOVIE_API_KEY)
-                        .appendQueryParameter(PAGE, page)
+                Uri builtUri = Uri.parse(Constant.MOVIE_BASE_URL + urlSuffix).buildUpon()
+                        .appendQueryParameter(Constant.API_KEY, BuildConfig.OPEN_POPULAR_MOVIE_API_KEY)
+                        .appendQueryParameter(Constant.PAGE, page)
                         .build();
 
                 URL url = new URL(builtUri.toString());
