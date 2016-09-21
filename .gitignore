@@ -11,3 +11,5 @@ src/main/java/com/popularmovies/SettingActivity.java
 src/main/res/drawable/
 src/main/res/layout/activity_setting.xml
 src/main/res/xml/
+*.properties
+*.idea
