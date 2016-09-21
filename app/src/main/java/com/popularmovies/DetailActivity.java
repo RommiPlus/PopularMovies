@@ -7,16 +7,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
-import model.PopularMovie;
-
 public class DetailActivity extends AppCompatActivity {
 
     public static final String DETAIL_MOVIE_INFO = "DETAIL_MOVIE";
     public static final String EXTRA_BUNDLE = "EXTRA_BUNDLE";
 
-    public static void actionStart(Context context, PopularMovie.ResultsBean bean) {
+    public static void actionStart(Context context, int movieId) {
         Bundle bundle = new Bundle();
-        bundle.putParcelable(DETAIL_MOVIE_INFO, bean);
+        bundle.putInt(DETAIL_MOVIE_INFO, movieId);
 
         Intent intent = new Intent(context, DetailActivity.class);
         intent.putExtra(EXTRA_BUNDLE, bundle);

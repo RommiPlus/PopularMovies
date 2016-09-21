@@ -57,7 +57,7 @@ public class MainActivityFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 PopularMovie.ResultsBean bean = (PopularMovie.ResultsBean) parent.getItemAtPosition(position);
-                DetailActivity.actionStart(getActivity(), bean);
+                DetailActivity.actionStart(getActivity(), bean.getId());
 
             }
         });
