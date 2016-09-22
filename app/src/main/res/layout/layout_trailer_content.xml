@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/trailer"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/distance_56dp"
+    android:background="@drawable/selector_trailer_item"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingStart="@dimen/activity_horizontal_margin">
+
+    <ImageButton
+        android:layout_width="@dimen/distance_48dp"
+        android:layout_height="@dimen/distance_48dp"
+        android:background="@null"
+        android:scaleType="centerCrop"
+        android:src="@drawable/selector_play_btn" />
+
+    <TextView
+        android:id="@+id/trailer_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/distance_8dp"
+        tools:text="This is a code" />
+
+</LinearLayout>

@@ -5,18 +5,18 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.popularmovies.BuildConfig;
 import com.popularmovies.DetailActivity;
 import com.popularmovies.R;
-import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 
@@ -26,9 +26,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
-import adapter.MovieAdapter;
+import adapter.DetailAdapter;
 import data.Constant;
 import model.MovieDetailInfo;
 import model.Reviews;
@@ -38,9 +39,14 @@ import model.Videos;
  * A placeholder fragment containing a simple view.
  */
 public class DetailActivityFragment extends Fragment {
+    private RecyclerView mRecyclerView;
+    private DetailAdapter mDetailAdapter;
+
     private MovieDetailInfo mMovieDetailInfo;
     private List<Videos.ResultsBean> mVideoData;
     private List<Reviews.ResultsBean> mReviews;
+
+    List<Object> mAdapterData;
 
     private static final int ERROR_MOVIE_ID = -1;
 
@@ -51,28 +57,27 @@ public class DetailActivityFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_detail, container, false);
+
+        mAdapterData = new ArrayList<>();
+
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
+        mDetailAdapter = new DetailAdapter(mAdapterData, getContext());
+        mRecyclerView.setAdapter(mDetailAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
         Intent intent = getActivity().getIntent();
-        int movieId = intent.getIntExtra(DetailActivity.EXTRA_BUNDLE, ERROR_MOVIE_ID);
+        int movieId = intent.getIntExtra(DetailActivity.DETAIL_MOVIE_INFO, ERROR_MOVIE_ID);
 
         if (movieId != ERROR_MOVIE_ID) {
             queryMovieInfo(movieId);
         }
 
-//        if (mMovieData != null) {
-//            ((TextView)view.findViewById(R.id.movie_title)).setText(mMovieData.getTitle());
-//            Picasso.with(getContext()).load(
-//                    MovieAdapter.POPULAR_MOVIE + mMovieData.getPosterPath())
-//                    .into((ImageView)view.findViewById(R.id.movie_img));
-//            ((TextView)view.findViewById(R.id.movie_date_time)).setText(mMovieData.getReleaseDate());
-//            ((TextView)view.findViewById(R.id.movie_vote_average)).setText(String.valueOf(mMovieData.getVoteAverage()));
-//            ((TextView)view.findViewById(R.id.movie_overview)).setText(mMovieData.getOverview());
-//        }
         return view;
     }
 
     private void queryMovieInfo(int movieId) {
-        FetchVideos fetchVideoTask = new FetchVideos();
-        fetchVideoTask.execute(movieId);
+        FetchMovieDetailInfo fetchMovieDetailInfoTask = new FetchMovieDetailInfo();
+        fetchMovieDetailInfoTask.execute(movieId);
     }
 
     public class FetchMovieDetailInfo extends AsyncTask<Integer, Void, MovieDetailInfo> {
@@ -109,7 +114,9 @@ public class DetailActivityFragment extends Fragment {
             String populatMovieJsonStr = null;
 
             try {
-                Uri builtUri = Uri.parse(Constant.MOVIE_BASE_URL + params[0]);
+                Uri builtUri = Uri.parse(Constant.MOVIE_BASE_URL + params[0]).buildUpon()
+                        .appendQueryParameter(Constant.API_KEY, BuildConfig.OPEN_POPULAR_MOVIE_API_KEY)
+                        .build();
 
                 URL url = new URL(builtUri.toString());
 
@@ -173,8 +180,8 @@ public class DetailActivityFragment extends Fragment {
         protected void onPostExecute(MovieDetailInfo info) {
             mMovieDetailInfo = info;
 
-            FetchReviews fetchReviewsTask = new FetchReviews();
-            fetchReviewsTask.execute(info.getId());
+            FetchVideos fetchVideos = new FetchVideos();
+            fetchVideos.execute(info.getId());
         }
     }
 
@@ -214,7 +221,10 @@ public class DetailActivityFragment extends Fragment {
             String populatMovieJsonStr = null;
 
             try {
-                Uri builtUri = Uri.parse(Constant.MOVIE_BASE_URL + params[0] + "/videos");
+                Uri builtUri = Uri.parse(Constant.MOVIE_BASE_URL + params[0] + "/videos")
+                        .buildUpon()
+                        .appendQueryParameter(Constant.API_KEY, BuildConfig.OPEN_POPULAR_MOVIE_API_KEY)
+                        .build();
 
                 URL url = new URL(builtUri.toString());
 
@@ -322,7 +332,10 @@ public class DetailActivityFragment extends Fragment {
             String populatMovieJsonStr = null;
 
             try {
-                Uri builtUri = Uri.parse(Constant.MOVIE_BASE_URL + params[0] + "/reviews");
+                Uri builtUri = Uri.parse(Constant.MOVIE_BASE_URL + params[0] + "/reviews")
+                        .buildUpon()
+                        .appendQueryParameter(Constant.API_KEY, BuildConfig.OPEN_POPULAR_MOVIE_API_KEY)
+                        .build();
 
                 URL url = new URL(builtUri.toString());
 
@@ -388,18 +401,23 @@ public class DetailActivityFragment extends Fragment {
                 mReviews = dataList;
             }
 
-            updateUI();
+            updateUi();
         }
     }
 
-    private void updateUI() {
-        ((TextView) getView().findViewById(R.id.movie_title)).setText(mMovieDetailInfo.getTitle());
-        Picasso.with(getContext()).load(
-                MovieAdapter.POPULAR_MOVIE + mMovieDetailInfo.getPosterPath())
-                .into((ImageView) getView().findViewById(R.id.movie_img));
-        ((TextView) getView().findViewById(R.id.movie_date_time)).setText(mMovieDetailInfo.getReleaseDate());
-        ((TextView) getView().findViewById(R.id.movie_vote_average)).setText(
-                String.valueOf(mMovieDetailInfo.getVoteAverage()) + "/10");
-        ((TextView) getView().findViewById(R.id.movie_overview)).setText(mMovieDetailInfo.getOverview());
+    private void updateUi() {
+        mAdapterData.add(mMovieDetailInfo);
+
+        if (mVideoData != null && (!mVideoData.isEmpty())) {
+            mAdapterData.add(new DetailAdapter.TrailerHear());
+            mAdapterData.addAll(mVideoData);
+        }
+
+        if (mReviews != null && (!mReviews.isEmpty())) {
+            mAdapterData.add(new DetailAdapter.ReviewHeader());
+            mAdapterData.addAll(mReviews);
+        }
+
+        mDetailAdapter.notifyDataSetChanged();
     }
 }
