@@ -14,4 +14,7 @@ public class Constant {
 
     // 	ISO 639-1 code.
     public static final String LANGUAGE = "language";
+
+    public static final int MOVIE_STAR = 0;
+    public static final int MOVIE_UNSTAR = 1;
 }

@@ -16,6 +16,7 @@
     <string name="cancel_as_favorite">CANCEL AS\nFAVORITE</string>
     <string name="pop_movies">Pop Movies</string>
     <string name="movie_detail">movieDetail</string>
+    <string name="content_authority">com.example.android.movie.popular.app</string>
 
     <array name="rank_entries">
         <item>@string/popular_movie</item>
