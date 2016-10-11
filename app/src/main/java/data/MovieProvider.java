@@ -19,7 +19,6 @@ import data.MovieContract.MovieVideoEntry;
  */
 
 public class MovieProvider extends ContentProvider {
-    // TODO: Movie detail and movie review and movie video three tables inner join
 
     public static final UriMatcher sUriMatcher = buildUriMatcher();
     private PopularMovieDbHelper mMovieDbHelper;
@@ -251,6 +250,42 @@ public class MovieProvider extends ContentProvider {
                 try {
                     for (ContentValues contentValues : values) {
                         long _id = db.insert(MovieDetailEntry.TABLE_NAME, null, contentValues);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            }
+
+            case MOVIE_REVIEWS: {
+                db.beginTransaction();
+                int returnCount = 0;
+                try {
+                    for (ContentValues contentValues : values) {
+                        long _id = db.insert(MovieReviewsEntry.TABLE_NAME, null, contentValues);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            }
+
+            case MOVIE_VIDEO: {
+                db.beginTransaction();
+                int returnCount = 0;
+                try {
+                    for (ContentValues contentValues : values) {
+                        long _id = db.insert(MovieVideoEntry.TABLE_NAME, null, contentValues);
                         if (_id != -1) {
                             returnCount++;
                         }

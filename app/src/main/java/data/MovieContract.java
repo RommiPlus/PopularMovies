@@ -46,6 +46,7 @@ public class MovieContract {
         public static final String COLUMN_RELEASE_DATE = "release_date";
         public static final String COLUMN_RUNTIME = "runtime";
         public static final String COLUMN_VOTE_AVERAGE = "vote_average";
+        public static final String COLUMN_POSTER_PATH = "poster_path";
 
         // When query movie data by this column, order movie data by release date desc.
         public static final String COLUMN_STAR = "star";

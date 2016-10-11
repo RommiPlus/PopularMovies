@@ -32,6 +32,7 @@ public class PopularMovieDbHelper extends SQLiteOpenHelper {
                 MovieDetailEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
                 MovieDetailEntry.COLUMN_RUNTIME + " INTEGER NOT NULL, " +
                 MovieDetailEntry.COLUMN_VOTE_AVERAGE + " REAL NOT NULL, " +
+                MovieDetailEntry.COLUMN_POSTER_PATH + " TEXT NOT NULL, " +
                 MovieDetailEntry.COLUMN_STAR + " INTEGER NOT NULL, " +
 
                 // To assure the application have just one movie id entry for all data

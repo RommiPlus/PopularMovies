@@ -291,7 +291,6 @@ public class TestProvider {
         cursor.close();
     }
 
-    static private final int BULK_INSERT_RECORDS_TO_INSERT = 10;
     static ContentValues[] createBulkInsertMovieDetailValues(long locationRowId) {
         ContentValues[] returnContentValues = new ContentValues[BULK_INSERT_RECORDS_TO_INSERT];
 
@@ -304,6 +303,7 @@ public class TestProvider {
             movieDetailValues.put(MovieDetailEntry.COLUMN_OVERVIEW, "This is item: " + i);
             movieDetailValues.put(MovieDetailEntry.COLUMN_RELEASE_DATE, "2016-12-06");
             movieDetailValues.put(MovieDetailEntry.COLUMN_RUNTIME, 122);
+            movieDetailValues.put(MovieDetailEntry.COLUMN_POSTER_PATH, "SKIJDKJOOJ");
             returnContentValues[i] = movieDetailValues;
         }
         return returnContentValues;
@@ -356,6 +356,160 @@ public class TestProvider {
         // A cursor is your primary interface to the query results.
         cursor = mContext.getContentResolver().query(
                 MovieDetailEntry.CONTENT_URI,
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null  // sort order == by DATE ASCENDING
+        );
+
+        // we should have as many records in the database as we've inserted
+        assertEquals(cursor.getCount(), BULK_INSERT_RECORDS_TO_INSERT);
+
+        // and let's make sure they match the ones we created
+        cursor.moveToFirst();
+        for ( int i = 0; i < BULK_INSERT_RECORDS_TO_INSERT; i++, cursor.moveToNext() ) {
+            TestUtilities.validateCurrentRecord("testBulkInsert.  Error validating WeatherEntry " + i,
+                    cursor, bulkInsertContentValues[i]);
+        }
+        cursor.close();
+    }
+
+    static private final int BULK_INSERT_RECORDS_TO_INSERT = 10;
+    static ContentValues[] createBulkInsertMovieReviewValues(long locationRowId) {
+        ContentValues[] returnContentValues = new ContentValues[BULK_INSERT_RECORDS_TO_INSERT];
+
+        for ( int i = 0; i < BULK_INSERT_RECORDS_TO_INSERT; i++) {
+            ContentValues movieReviewsValues = new ContentValues();
+            movieReviewsValues.put(MovieReviewsEntry.COLUMN_REVIEW_ID, i);
+            movieReviewsValues.put(MovieReviewsEntry.COLUMN_MOVIE_ID, TestUtilities.TEST_MOVIE_ID);
+            movieReviewsValues.put(MovieReviewsEntry.COLUMN_CONTENT, "item: " + i);
+            movieReviewsValues.put(MovieReviewsEntry.COLUMN_AUTHOR, "item: " + i);
+            returnContentValues[i] = movieReviewsValues;
+        }
+        return returnContentValues;
+    }
+
+    @Test
+    public void testMovieReviewsBulkInsert() {
+        ContentValues testValues = TestUtilities.createMovieDetailInfo();
+        Uri locationUri = mContext.getContentResolver().insert(MovieDetailEntry.CONTENT_URI, testValues);
+        long locationRowId = ContentUris.parseId(locationUri);
+
+        // Verify we got a row back.
+        assertTrue(locationRowId != -1);
+
+        // Data's inserted.  IN THEORY.  Now pull some out to stare at it and verify it made
+        // the round trip.
+
+        // A cursor is your primary interface to the query results.
+        Cursor cursor = mContext.getContentResolver().query(
+                MovieDetailEntry.CONTENT_URI,
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null  // sort order
+        );
+
+        TestUtilities.validateCursor("testBulkInsert. Error validating LocationEntry.",
+                cursor, testValues);
+
+        // Now we can bulkInsert some weather.  In fact, we only implement BulkInsert for weather
+        // entries.  With ContentProviders, you really only have to implement the features you
+        // use, after all.
+        ContentValues[] bulkInsertContentValues = createBulkInsertMovieReviewValues(locationRowId);
+
+        TestUtilities.TestContentObserver weatherObserver = TestUtilities.getTestContentObserver();
+        mContext.getContentResolver().registerContentObserver(MovieReviewsEntry.CONTENT_URI, true, weatherObserver);
+
+        int insertCount = mContext.getContentResolver().bulkInsert(MovieReviewsEntry.CONTENT_URI, bulkInsertContentValues);
+
+        // Students:  If this fails, it means that you most-likely are not calling the
+        // getContext().getContentResolver().notifyChange(uri, null); in your BulkInsert
+        // ContentProvider method.
+        weatherObserver.waitForNotificationOrFail();
+        mContext.getContentResolver().unregisterContentObserver(weatherObserver);
+
+        assertEquals(insertCount, BULK_INSERT_RECORDS_TO_INSERT);
+
+        // A cursor is your primary interface to the query results.
+        cursor = mContext.getContentResolver().query(
+                MovieReviewsEntry.CONTENT_URI,
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null  // sort order == by DATE ASCENDING
+        );
+
+        // we should have as many records in the database as we've inserted
+        assertEquals(cursor.getCount(), BULK_INSERT_RECORDS_TO_INSERT);
+
+        // and let's make sure they match the ones we created
+        cursor.moveToFirst();
+        for ( int i = 0; i < BULK_INSERT_RECORDS_TO_INSERT; i++, cursor.moveToNext() ) {
+            TestUtilities.validateCurrentRecord("testBulkInsert.  Error validating WeatherEntry " + i,
+                    cursor, bulkInsertContentValues[i]);
+        }
+        cursor.close();
+    }
+
+    static ContentValues[] createBulkInsertMovieVideoValues(long locationRowId) {
+        ContentValues[] returnContentValues = new ContentValues[BULK_INSERT_RECORDS_TO_INSERT];
+
+        for ( int i = 0; i < BULK_INSERT_RECORDS_TO_INSERT; i++) {
+            ContentValues movieDetailValues = new ContentValues();
+            movieDetailValues.put(MovieVideoEntry.COLUMN_VIDEO_ID, i);
+            movieDetailValues.put(MovieVideoEntry.COLUMN_MOVIE_ID, TestUtilities.TEST_MOVIE_ID);
+            movieDetailValues.put(MovieVideoEntry.COLUMN_KEY, "MNSINS" + i);
+            returnContentValues[i] = movieDetailValues;
+        }
+        return returnContentValues;
+    }
+
+    @Test
+    public void testMovieVideoBulkInsert() {
+        ContentValues testValues = TestUtilities.createMovieDetailInfo();
+        Uri locationUri = mContext.getContentResolver().insert(MovieDetailEntry.CONTENT_URI, testValues);
+        long locationRowId = ContentUris.parseId(locationUri);
+
+        // Verify we got a row back.
+        assertTrue(locationRowId != -1);
+
+        // Data's inserted.  IN THEORY.  Now pull some out to stare at it and verify it made
+        // the round trip.
+
+        // A cursor is your primary interface to the query results.
+        Cursor cursor = mContext.getContentResolver().query(
+                MovieDetailEntry.CONTENT_URI,
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null  // sort order
+        );
+
+        TestUtilities.validateCursor("testBulkInsert. Error validating LocationEntry.",
+                cursor, testValues);
+
+        // Now we can bulkInsert some weather.  In fact, we only implement BulkInsert for weather
+        // entries.  With ContentProviders, you really only have to implement the features you
+        // use, after all.
+        ContentValues[] bulkInsertContentValues = createBulkInsertMovieVideoValues(locationRowId);
+
+        TestUtilities.TestContentObserver weatherObserver = TestUtilities.getTestContentObserver();
+        mContext.getContentResolver().registerContentObserver(MovieVideoEntry.CONTENT_URI, true, weatherObserver);
+
+        int insertCount = mContext.getContentResolver().bulkInsert(MovieVideoEntry.CONTENT_URI, bulkInsertContentValues);
+
+        // Students:  If this fails, it means that you most-likely are not calling the
+        // getContext().getContentResolver().notifyChange(uri, null); in your BulkInsert
+        // ContentProvider method.
+        weatherObserver.waitForNotificationOrFail();
+        mContext.getContentResolver().unregisterContentObserver(weatherObserver);
+
+        assertEquals(insertCount, BULK_INSERT_RECORDS_TO_INSERT);
+
+        // A cursor is your primary interface to the query results.
+        cursor = mContext.getContentResolver().query(
+                MovieVideoEntry.CONTENT_URI,
                 null, // leaving "columns" null just returns all the columns.
                 null, // cols for "where" clause
                 null, // values for "where" clause

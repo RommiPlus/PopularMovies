@@ -1,13 +1,19 @@
 package fragment;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,19 +35,23 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
-import adapter.MovieAdapter;
+import adapter.MoviePreviewAdapter;
 import data.Constant;
+import data.MovieContract;
+import data.MovieContract.MovieDetailEntry;
 import model.PopularMovie;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment {
+public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private GridView mMovieGv;
-    private MovieAdapter mMovieAdapter;
+    private MoviePreviewAdapter mMovieAdapter;
+
+    private final int UNIQUE_LOADER = 0;
 
     public MainActivityFragment() {
     }
@@ -49,19 +59,25 @@ public class MainActivityFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mMovieAdapter = new MovieAdapter(getActivity(), new ArrayList<PopularMovie.ResultsBean>());
+        mMovieAdapter = new MoviePreviewAdapter(getContext(), null, 0);
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         mMovieGv = (GridView) view.findViewById(R.id.movie_gv);
         mMovieGv.setAdapter(mMovieAdapter);
         mMovieGv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                PopularMovie.ResultsBean bean = (PopularMovie.ResultsBean) parent.getItemAtPosition(position);
-                DetailActivity.actionStart(getActivity(), bean.getId());
-
+                Cursor c = (Cursor) parent.getItemAtPosition(position);
+                int index = c.getColumnIndex(MovieContract.MovieDetailEntry.COLUMN_POSTER_PATH);
+                DetailActivity.actionStart(getActivity(), c.getInt(index));
             }
         });
         return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        getLoaderManager().initLoader(UNIQUE_LOADER, null, this);
     }
 
     @Override
@@ -88,7 +104,28 @@ public class MainActivityFragment extends Fragment {
         popularMovieTask.execute(orderUnitInfo);
     }
 
-    public class FetchPopularMovieTask extends AsyncTask<String, Void, List<PopularMovie.ResultsBean>> {
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(getContext(),
+                MovieDetailEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mMovieAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mMovieAdapter.swapCursor(null);
+    }
+
+
+    public class FetchPopularMovieTask extends AsyncTask<String, Void, Void> {
 
         private final String LOG_TAG = FetchPopularMovieTask.class.getSimpleName();
 
@@ -99,17 +136,39 @@ public class MainActivityFragment extends Fragment {
          * Fortunately parsing is easy:  constructor takes the JSON string and converts it
          * into an Object hierarchy for us.
          */
-        private List<PopularMovie.ResultsBean> getMovieDataFromJson(String forecastJsonStr)
+        private void getMovieDataFromJson(String forecastJsonStr)
                 throws JSONException {
-
             Gson data = new GsonBuilder().create();
             PopularMovie movie = data.fromJson(forecastJsonStr, PopularMovie.class);
             List<PopularMovie.ResultsBean> results = movie.getResults();
-            return results;
+
+            Vector<ContentValues> info = new Vector<>();
+            for (PopularMovie.ResultsBean movieData : results) {
+                ContentValues values = new ContentValues();
+                values.put(MovieDetailEntry.COLUMN_MOVIE_ID, movieData.getId());
+                values.put(MovieDetailEntry.COLUMN_TITLE, movieData.getTitle());
+                values.put(MovieDetailEntry.COLUMN_OVERVIEW, movieData.getOverview());
+                values.put(MovieDetailEntry.COLUMN_RELEASE_DATE, movieData.getReleaseDate());
+                values.put(MovieDetailEntry.COLUMN_VOTE_AVERAGE, movieData.getVoteAverage());
+                values.put(MovieDetailEntry.COLUMN_POSTER_PATH, movieData.getPosterPath());
+                values.put(MovieDetailEntry.COLUMN_RUNTIME, 0);
+                values.put(MovieDetailEntry.COLUMN_STAR, Constant.MOVIE_UNSTAR);
+
+                info.add(values);
+            }
+
+            int inserted = 0;
+            if (results.size() > 0 ) {
+                ContentValues[] values = new ContentValues[results.size()];
+                info.toArray(values);
+                inserted = getContext().getContentResolver().bulkInsert(MovieDetailEntry.CONTENT_URI, values);
+            }
+
+            Log.d(LOG_TAG, "FetchPopularMovieTask Complete. " + inserted + " Inserted");
         }
 
         @Override
-        protected List<PopularMovie.ResultsBean> doInBackground(String... params) {
+        protected Void doInBackground(String... params) {
 
             // If there's no zip code, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
@@ -186,22 +245,12 @@ public class MainActivityFragment extends Fragment {
             }
 
             try {
-                return getMovieDataFromJson(populatMovieJsonStr);
+                getMovieDataFromJson(populatMovieJsonStr);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
             }
-
-            // This will only happen if there was an error getting or parsing the forecast.
             return null;
-        }
-
-        @Override
-        protected void onPostExecute(List<PopularMovie.ResultsBean> dataList) {
-            if (dataList != null && dataList.size() > 0) {
-                mMovieAdapter.clear();
-                mMovieAdapter.addAll(dataList);
-            }
         }
     }
 }

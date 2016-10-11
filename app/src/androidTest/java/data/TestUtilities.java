@@ -37,6 +37,7 @@ public class TestUtilities {
         contentValues.put(MovieDetailEntry.COLUMN_STAR, Constant.MOVIE_STAR);
         contentValues.put(MovieDetailEntry.COLUMN_TITLE, "Wolf coming");
         contentValues.put(MovieDetailEntry.COLUMN_VOTE_AVERAGE, 6.4);
+        contentValues.put(MovieDetailEntry.COLUMN_POSTER_PATH, "JUHSIDHOO");
         return contentValues;
     }
 

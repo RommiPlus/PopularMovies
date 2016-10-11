@@ -1,10 +1,16 @@
 package fragment;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -28,9 +34,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import adapter.DetailAdapter;
 import data.Constant;
+import data.MovieContract.MovieDetailEntry;
+import data.MovieContract.MovieReviewsEntry;
+import data.MovieContract.MovieVideoEntry;
 import model.MovieDetailInfo;
 import model.Reviews;
 import model.Videos;
@@ -38,7 +48,7 @@ import model.Videos;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class DetailActivityFragment extends Fragment {
+public class DetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private RecyclerView mRecyclerView;
     private DetailAdapter mDetailAdapter;
 
@@ -49,6 +59,10 @@ public class DetailActivityFragment extends Fragment {
     List<Object> mAdapterData;
 
     private static final int ERROR_MOVIE_ID = -1;
+
+    private final int DETAIL_ID = 0;
+
+    private int mMovieId;
 
     public DetailActivityFragment() {
     }
@@ -66,10 +80,10 @@ public class DetailActivityFragment extends Fragment {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         Intent intent = getActivity().getIntent();
-        int movieId = intent.getIntExtra(DetailActivity.DETAIL_MOVIE_INFO, ERROR_MOVIE_ID);
+        mMovieId = intent.getIntExtra(DetailActivity.DETAIL_MOVIE_INFO, ERROR_MOVIE_ID);
 
-        if (movieId != ERROR_MOVIE_ID) {
-            queryMovieInfo(movieId);
+        if (mMovieId != ERROR_MOVIE_ID) {
+            queryMovieInfo(mMovieId);
         }
 
         return view;
@@ -80,7 +94,29 @@ public class DetailActivityFragment extends Fragment {
         fetchMovieDetailInfoTask.execute(movieId);
     }
 
-    public class FetchMovieDetailInfo extends AsyncTask<Integer, Void, MovieDetailInfo> {
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        getLoaderManager().initLoader(DETAIL_ID, null, this);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(getContext(), MovieDetailEntry.buildMovieDetailUri(mMovieId),
+                null, null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+    public class FetchMovieDetailInfo extends AsyncTask<Integer, Void, Integer> {
 
         private final String LOG_TAG = FetchMovieDetailInfo.class.getSimpleName();
 
@@ -91,14 +127,22 @@ public class DetailActivityFragment extends Fragment {
          * Fortunately parsing is easy:  constructor takes the JSON string and converts it
          * into an Object hierarchy for us.
          */
-        private MovieDetailInfo getMovieDetailDataFromJson(String forecastJsonStr)
+        private int getMovieDetailDataFromJson(String forecastJsonStr)
                 throws JSONException {
             Gson data = new GsonBuilder().create();
-            return data.fromJson(forecastJsonStr, MovieDetailInfo.class);
+            MovieDetailInfo info = data.fromJson(forecastJsonStr, MovieDetailInfo.class);
+
+            ContentValues values = new ContentValues();
+            values.put(MovieDetailEntry.COLUMN_RUNTIME, info.getRuntime());
+            getContext().getContentResolver().update(MovieDetailEntry.CONTENT_URI,
+                    values,
+                    MovieDetailEntry.COLUMN_MOVIE_ID + " = ?",
+                    new String[] {String.valueOf(info.getId())});
+            return info.getId();
         }
 
         @Override
-        protected MovieDetailInfo doInBackground(Integer... params) {
+        protected Integer doInBackground(Integer... params) {
 
             // If there's no zip code, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
@@ -173,19 +217,21 @@ public class DetailActivityFragment extends Fragment {
             }
 
             // This will only happen if there was an error getting or parsing the forecast.
-            return null;
+            return 0;
         }
 
         @Override
-        protected void onPostExecute(MovieDetailInfo info) {
-            mMovieDetailInfo = info;
+        protected void onPostExecute(Integer movieId) {
+            super.onPostExecute(movieId);
 
-            FetchVideos fetchVideos = new FetchVideos();
-            fetchVideos.execute(info.getId());
+            if (movieId != 0) {
+                FetchVideos fetchVideos = new FetchVideos();
+                fetchVideos.execute(movieId);
+            }
         }
     }
 
-    public class FetchVideos extends AsyncTask<Integer, Void, List<Videos.ResultsBean>> {
+    public class FetchVideos extends AsyncTask<Integer, Void, Integer> {
 
         private final String LOG_TAG = FetchVideos.class.getSimpleName();
 
@@ -196,17 +242,35 @@ public class DetailActivityFragment extends Fragment {
          * Fortunately parsing is easy:  constructor takes the JSON string and converts it
          * into an Object hierarchy for us.
          */
-        private List<Videos.ResultsBean> getVideoDataFromJson(String forecastJsonStr)
+        private int getVideoDataFromJson(String forecastJsonStr)
                 throws JSONException {
             Gson data = new GsonBuilder().create();
             Videos videos = data.fromJson(forecastJsonStr, Videos.class);
             List<Videos.ResultsBean> results = videos.getResults();
-            return results;
+
+            Vector<ContentValues> info = new Vector<>();
+            for (Videos.ResultsBean movieData : results) {
+                ContentValues values = new ContentValues();
+                values.put(MovieVideoEntry.COLUMN_VIDEO_ID, movieData.getId());
+                values.put(MovieVideoEntry.COLUMN_MOVIE_ID, videos.getId());
+                values.put(MovieVideoEntry.COLUMN_KEY, movieData.getKey());
+
+                info.add(values);
+            }
+
+            int inserted = 0;
+            if (results.size() > 0 ) {
+                ContentValues[] values = new ContentValues[results.size()];
+                info.toArray(values);
+                inserted = getContext().getContentResolver().bulkInsert(MovieVideoEntry.CONTENT_URI, values);
+            }
+
+            Log.d(LOG_TAG, "FetchPopularMovieTask Complete. " + inserted + " Inserted");
+            return videos.getId();
         }
 
         @Override
-        protected List<Videos.ResultsBean> doInBackground(Integer... params) {
-
+        protected Integer doInBackground(Integer... params) {
             // If there's no zip code, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
                 return null;
@@ -281,21 +345,21 @@ public class DetailActivityFragment extends Fragment {
             }
 
             // This will only happen if there was an error getting or parsing the forecast.
-            return null;
+            return 0;
         }
 
         @Override
-        protected void onPostExecute(List<Videos.ResultsBean> dataList) {
-            if (dataList != null && dataList.size() > 0) {
-                mVideoData = dataList;
-            }
+        protected void onPostExecute(Integer movieId) {
+            super.onPostExecute(movieId);
 
-            FetchReviews fetchReviewsTask = new FetchReviews();
-            fetchReviewsTask.execute(mMovieDetailInfo.getId());
+            if (movieId != 0) {
+                FetchReviews fetchReviews = new FetchReviews();
+                fetchReviews.execute(movieId);
+            }
         }
     }
 
-    public class FetchReviews extends AsyncTask<Integer, Void, List<Reviews.ResultsBean>> {
+    public class FetchReviews extends AsyncTask<Integer, Void, Void> {
 
         private final String LOG_TAG = FetchReviews.class.getSimpleName();
 
@@ -306,17 +370,35 @@ public class DetailActivityFragment extends Fragment {
          * Fortunately parsing is easy:  constructor takes the JSON string and converts it
          * into an Object hierarchy for us.
          */
-        private List<Reviews.ResultsBean> getReviewsDataFromJson(String forecastJsonStr)
+        private void getReviewsDataFromJson(String forecastJsonStr)
                 throws JSONException {
-
             Gson data = new GsonBuilder().create();
             Reviews reviews = data.fromJson(forecastJsonStr, Reviews.class);
             List<Reviews.ResultsBean> results = reviews.getResults();
-            return results;
+
+            Vector<ContentValues> info = new Vector<>();
+            for (Reviews.ResultsBean movieData : results) {
+                ContentValues values = new ContentValues();
+                values.put(MovieReviewsEntry.COLUMN_REVIEW_ID, movieData.getId());
+                values.put(MovieReviewsEntry.COLUMN_MOVIE_ID, reviews.getId());
+                values.put(MovieReviewsEntry.COLUMN_CONTENT, movieData.getContent());
+                values.put(MovieReviewsEntry.COLUMN_AUTHOR, movieData.getAuthor());
+
+                info.add(values);
+            }
+
+            int inserted = 0;
+            if (results.size() > 0 ) {
+                ContentValues[] values = new ContentValues[results.size()];
+                info.toArray(values);
+                inserted = getContext().getContentResolver().bulkInsert(MovieReviewsEntry.CONTENT_URI, values);
+            }
+
+            Log.d(LOG_TAG, "FetchPopularMovieTask Complete. " + inserted + " Inserted");
         }
 
         @Override
-        protected List<Reviews.ResultsBean> doInBackground(Integer... params) {
+        protected Void doInBackground(Integer... params) {
 
             // If there's no zip code, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
@@ -385,7 +467,7 @@ public class DetailActivityFragment extends Fragment {
             }
 
             try {
-                return getReviewsDataFromJson(populatMovieJsonStr);
+                getReviewsDataFromJson(populatMovieJsonStr);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
@@ -395,29 +477,6 @@ public class DetailActivityFragment extends Fragment {
             return null;
         }
 
-        @Override
-        protected void onPostExecute(List<Reviews.ResultsBean> dataList) {
-            if (dataList != null && dataList.size() > 0) {
-                mReviews = dataList;
-            }
-
-            updateUi();
-        }
     }
 
-    private void updateUi() {
-        mAdapterData.add(mMovieDetailInfo);
-
-        if (mVideoData != null && (!mVideoData.isEmpty())) {
-            mAdapterData.add(new DetailAdapter.TrailerHear());
-            mAdapterData.addAll(mVideoData);
-        }
-
-        if (mReviews != null && (!mReviews.isEmpty())) {
-            mAdapterData.add(new DetailAdapter.ReviewHeader());
-            mAdapterData.addAll(mReviews);
-        }
-
-        mDetailAdapter.notifyDataSetChanged();
-    }
 }
