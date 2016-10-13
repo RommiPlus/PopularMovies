@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.Nullable;
 
 import data.MovieContract.MovieDetailEntry;
@@ -34,13 +35,13 @@ public class MovieProvider extends ContentProvider {
         sMovieWholeInfoQueryBuilder = new SQLiteQueryBuilder();
 
         sMovieWholeInfoQueryBuilder.setTables(
-                MovieDetailEntry.TABLE_NAME + " INNER JOIN " +
+                MovieDetailEntry.TABLE_NAME + " LEFT OUTER JOIN " +
                     MovieReviewsEntry.TABLE_NAME +
                     " ON " + MovieDetailEntry.TABLE_NAME +
                     "." + MovieDetailEntry.COLUMN_MOVIE_ID +
                     " = " + MovieReviewsEntry.TABLE_NAME +
                     "." + MovieReviewsEntry.COLUMN_MOVIE_ID +
-                    " INNER JOIN " + MovieVideoEntry.TABLE_NAME +
+                    " LEFT OUTER JOIN " + MovieVideoEntry.TABLE_NAME +
                         " ON " + MovieDetailEntry.TABLE_NAME +
                         "." + MovieDetailEntry.COLUMN_MOVIE_ID +
                         " = " + MovieVideoEntry.TABLE_NAME +
@@ -79,6 +80,8 @@ public class MovieProvider extends ContentProvider {
                 selectionArgs = new String[] { movieId };
                 queryCursor = sMovieWholeInfoQueryBuilder.query(
                         db, projection, selection, selectionArgs, null, null, sortOrder);
+
+                queryCursor.respond();
                 break;
 
             case MOVIE_DETAIL:
