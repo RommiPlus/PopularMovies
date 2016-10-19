@@ -27,13 +27,29 @@ import static org.junit.Assert.assertTrue;
 public class TestUtilities {
 
     static final int TEST_MOVIE_ID = 1;
+    static final int TEST_OLD_RUNTIME = 123;
+    static final int TEST_NEW_RUNTIME = 120;
 
     static ContentValues createMovieDetailInfo() {
         ContentValues contentValues = new ContentValues();
         contentValues.put(MovieDetailEntry.COLUMN_MOVIE_ID, TEST_MOVIE_ID);
         contentValues.put(MovieDetailEntry.COLUMN_OVERVIEW, "This is a test overview");
         contentValues.put(MovieDetailEntry.COLUMN_RELEASE_DATE, "2016-09-03");
-        contentValues.put(MovieDetailEntry.COLUMN_RUNTIME, "123");
+        contentValues.put(MovieDetailEntry.COLUMN_RUNTIME, TEST_OLD_RUNTIME);
+        contentValues.put(MovieDetailEntry.COLUMN_STAR, Constant.MOVIE_STAR);
+        contentValues.put(MovieDetailEntry.COLUMN_TITLE, "Wolf coming");
+        contentValues.put(MovieDetailEntry.COLUMN_VOTE_AVERAGE, 6.4);
+        contentValues.put(MovieDetailEntry.COLUMN_POSTER_PATH, "JUHSIDHOO");
+        return contentValues;
+    }
+
+
+    static ContentValues createMovieDetailInfo(int runtime) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MovieDetailEntry.COLUMN_MOVIE_ID, TEST_MOVIE_ID);
+        contentValues.put(MovieDetailEntry.COLUMN_OVERVIEW, "This is a test overview");
+        contentValues.put(MovieDetailEntry.COLUMN_RELEASE_DATE, "2016-09-03");
+        contentValues.put(MovieDetailEntry.COLUMN_RUNTIME, runtime);
         contentValues.put(MovieDetailEntry.COLUMN_STAR, Constant.MOVIE_STAR);
         contentValues.put(MovieDetailEntry.COLUMN_TITLE, "Wolf coming");
         contentValues.put(MovieDetailEntry.COLUMN_VOTE_AVERAGE, 6.4);

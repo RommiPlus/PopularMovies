@@ -37,7 +37,7 @@ public class PopularMovieDbHelper extends SQLiteOpenHelper {
 
                 // To assure the application have just one movie id entry for all data
                 // it's created a UNIQUE constraint with REPLACE strategy
-                " UNIQUE (" + MovieDetailEntry.COLUMN_MOVIE_ID  + ") ON CONFLICT REPLACE);";
+                " UNIQUE (" + MovieDetailEntry.COLUMN_MOVIE_ID  + ") ON CONFLICT ABORT);";
 
         final String SQL_CREATE_MOVIE_REVIEW_TABLE = "CREATE TABLE " + MovieReviewsEntry.TABLE_NAME + " (" +
                 MovieReviewsEntry._ID + " INTEGER PRIMARY KEY," +

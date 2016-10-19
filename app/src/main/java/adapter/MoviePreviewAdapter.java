@@ -47,11 +47,13 @@ public class MoviePreviewAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
+        String path = POPULAR_MOVIE + cursor.getString(
+                cursor.getColumnIndex(MovieContract.MovieDetailEntry.COLUMN_POSTER_PATH));
+
         ImageViewHolder viewHolder = (ImageViewHolder) view.getTag();
 
         Picasso.with(context)
-                .load(POPULAR_MOVIE + cursor.getString(
-                        cursor.getColumnIndex(MovieContract.MovieDetailEntry.COLUMN_POSTER_PATH)))
+                .load(path)
                 .placeholder(R.mipmap.ic_launcher)
                 .error(R.mipmap.ic_launcher)
                 .into(viewHolder.mMovieImageIv);

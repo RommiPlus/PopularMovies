@@ -38,8 +38,8 @@ public class DetailMovieDataLoader extends AsyncTaskLoader<List<Object>> {
             throw new IllegalArgumentException("Movie detail info should not be null");
         }
 
-        List<Reviews> reviews = CursorUlities.cursorToMovieReivews(getMovieReviewsCursor());
         List<Videos> videos = CursorUlities.cursorToMovieVideos(getMovieVideoCursor());
+        List<Reviews> reviews = CursorUlities.cursorToMovieReivews(getMovieReviewsCursor());
 
         ArrayList<Object> list = new ArrayList<>();
         list.add(info);
@@ -83,19 +83,6 @@ public class DetailMovieDataLoader extends AsyncTaskLoader<List<Object>> {
                         new String[]{String.valueOf(mMovieId)},
                         null);
 
-        registerContentObserver(cursor);
-        return cursor;
-    }
-
-    public Cursor getMovieReviewsCursor() {
-        Cursor cursor = getContext().getContentResolver()
-                .query(MovieReviewsEntry.CONTENT_URI,
-                        null,
-                        MovieReviewsEntry.COLUMN_MOVIE_ID + " = ?",
-                        new String[]{String.valueOf(mMovieId)},
-                        null);
-
-        registerContentObserver(cursor);
         return cursor;
     }
 
@@ -104,6 +91,17 @@ public class DetailMovieDataLoader extends AsyncTaskLoader<List<Object>> {
                 .query(MovieVideoEntry.CONTENT_URI,
                         null,
                         MovieVideoEntry.COLUMN_MOVIE_ID + " = ?",
+                        new String[]{String.valueOf(mMovieId)},
+                        null);
+
+        return cursor;
+    }
+
+    public Cursor getMovieReviewsCursor() {
+        Cursor cursor = getContext().getContentResolver()
+                .query(MovieReviewsEntry.CONTENT_URI,
+                        null,
+                        MovieReviewsEntry.COLUMN_MOVIE_ID + " = ?",
                         new String[]{String.valueOf(mMovieId)},
                         null);
 

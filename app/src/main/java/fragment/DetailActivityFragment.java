@@ -129,7 +129,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
             ContentValues values = new ContentValues();
             values.put(MovieDetailEntry.COLUMN_RUNTIME, info.getRuntime());
-            getContext().getContentResolver().update(MovieDetailEntry.CONTENT_URI,
+            getActivity().getContentResolver().update(MovieDetailEntry.CONTENT_URI,
                     values,
                     MovieDetailEntry.COLUMN_MOVIE_ID + " = ?",
                     new String[] {String.valueOf(info.getId())});
@@ -258,7 +258,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             if (results.size() > 0 ) {
                 ContentValues[] values = new ContentValues[results.size()];
                 info.toArray(values);
-                inserted = getContext().getContentResolver().bulkInsert(MovieVideoEntry.CONTENT_URI, values);
+                inserted = getActivity().getContentResolver().bulkInsert(MovieVideoEntry.CONTENT_URI, values);
             }
 
             Log.d(LOG_TAG, "FetchPopularMovieTask Complete. " + inserted + " Inserted");
@@ -387,7 +387,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             if (results.size() > 0 ) {
                 ContentValues[] values = new ContentValues[results.size()];
                 info.toArray(values);
-                inserted = getContext().getContentResolver().bulkInsert(MovieReviewsEntry.CONTENT_URI, values);
+                inserted = getActivity().getContentResolver().bulkInsert(MovieReviewsEntry.CONTENT_URI, values);
             }
 
             Log.d(LOG_TAG, "FetchPopularMovieTask Complete. " + inserted + " Inserted");

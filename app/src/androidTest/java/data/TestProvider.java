@@ -374,6 +374,59 @@ public class TestProvider {
         cursor.close();
     }
 
+    @Test
+    public void testMovieDetailInfoUpdate() {
+        // first, let's create a location value
+        ContentValues testValues = TestUtilities.createMovieDetailInfo();
+        Uri locationUri = mContext.getContentResolver().insert(MovieDetailEntry.CONTENT_URI, testValues);
+        long locationRowId = ContentUris.parseId(locationUri);
+
+        // Verify we got a row back.
+        assertTrue(locationRowId != -1);
+
+        // Data's inserted.  IN THEORY.  Now pull some out to stare at it and verify it made
+        // the round trip.
+
+        // A cursor is your primary interface to the query results.
+        Cursor cursor = mContext.getContentResolver().query(
+                MovieDetailEntry.CONTENT_URI,
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null  // sort order
+        );
+
+        TestUtilities.validateCursor("testBulkInsert. Error validating LocationEntry.",
+                cursor, testValues);
+
+        ContentValues updateValues = createUpdateMovieDetailValues();
+        long updateRowId =  mContext.getContentResolver().update(MovieDetailEntry.CONTENT_URI,
+                updateValues, MovieDetailEntry.COLUMN_MOVIE_ID + " = ?",
+                new String[]{String.valueOf(TestUtilities.TEST_MOVIE_ID)});
+
+        assertTrue("update rowId is not same with insert row Id", updateRowId == locationRowId);
+
+        cursor = mContext.getContentResolver().query(
+                MovieDetailEntry.CONTENT_URI,
+                null, // leaving "columns" null just returns all the columns.
+                MovieDetailEntry.COLUMN_MOVIE_ID + " = ?", // cols for "where" clause
+                new String[]{String.valueOf(TestUtilities.TEST_MOVIE_ID)}, // values for "where" clause
+                null  // sort order
+        );
+
+        // and let's make sure they match the ones we created
+        assertTrue(cursor.moveToFirst());
+        TestUtilities.validateCursor("testBulkInsert. Error validating LocationEntry.",
+                    cursor, TestUtilities.createMovieDetailInfo(TestUtilities.TEST_NEW_RUNTIME));
+
+    }
+
+    public ContentValues createUpdateMovieDetailValues() {
+        ContentValues values = new ContentValues();
+        values.put(MovieDetailEntry.COLUMN_RUNTIME, String.valueOf(TestUtilities.TEST_NEW_RUNTIME));
+        return values;
+    }
+
     static private final int BULK_INSERT_RECORDS_TO_INSERT = 10;
     static ContentValues[] createBulkInsertMovieReviewValues(long locationRowId) {
         ContentValues[] returnContentValues = new ContentValues[BULK_INSERT_RECORDS_TO_INSERT];
