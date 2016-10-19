@@ -7,7 +7,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.os.Bundle;
 import android.support.annotation.Nullable;
 
 import data.MovieContract.MovieDetailEntry;
@@ -80,8 +79,6 @@ public class MovieProvider extends ContentProvider {
                 selectionArgs = new String[] { movieId };
                 queryCursor = sMovieWholeInfoQueryBuilder.query(
                         db, projection, selection, selectionArgs, null, null, sortOrder);
-
-                queryCursor.respond();
                 break;
 
             case MOVIE_DETAIL:

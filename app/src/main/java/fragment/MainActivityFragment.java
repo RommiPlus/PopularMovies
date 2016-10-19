@@ -1,10 +1,7 @@
 package fragment;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -40,9 +37,9 @@ import java.util.Vector;
 
 import adapter.MoviePreviewAdapter;
 import data.Constant;
-import data.MovieContract;
 import data.MovieContract.MovieDetailEntry;
 import model.PopularMovie;
+import util.NetworkUtil;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -67,7 +64,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Cursor c = (Cursor) parent.getItemAtPosition(position);
-                int index = c.getColumnIndex(MovieContract.MovieDetailEntry.COLUMN_POSTER_PATH);
+                int index = c.getColumnIndex(MovieDetailEntry.COLUMN_MOVIE_ID);
                 DetailActivity.actionStart(getActivity(), c.getInt(index));
             }
         });
@@ -84,16 +81,9 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public void onStart() {
         super.onStart();
 
-        if (isOnline()){
+        if (NetworkUtil.isOnline(getActivity())) {
             updatePopularMovies();
         }
-    }
-
-    public boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     private void updatePopularMovies() {
@@ -158,7 +148,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             }
 
             int inserted = 0;
-            if (results.size() > 0 ) {
+            if (results.size() > 0) {
                 ContentValues[] values = new ContentValues[results.size()];
                 info.toArray(values);
                 inserted = getContext().getContentResolver().bulkInsert(MovieDetailEntry.CONTENT_URI, values);

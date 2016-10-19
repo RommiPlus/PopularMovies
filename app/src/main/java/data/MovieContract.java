@@ -99,6 +99,7 @@ public class MovieContract {
 
         public static final String COLUMN_VIDEO_ID = "video_id";
         public static final String COLUMN_KEY = "key";
+        public static final String COLUMN_NAME = "name";
 
         public static Uri buildMovieVideoUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);

@@ -54,6 +54,7 @@ public class TestUtilities {
         ContentValues contentValues = new ContentValues();
         contentValues.put(MovieVideoEntry.COLUMN_MOVIE_ID, TEST_MOVIE_ID);
         contentValues.put(MovieVideoEntry.COLUMN_KEY, "WAEDJI");
+        contentValues.put(MovieVideoEntry.COLUMN_NAME, "WAEDJI");
         contentValues.put(MovieVideoEntry.COLUMN_VIDEO_ID, "455");
         return contentValues;
     }

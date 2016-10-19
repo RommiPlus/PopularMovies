@@ -59,6 +59,7 @@ public class PopularMovieDbHelper extends SQLiteOpenHelper {
                 MovieVideoEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
                 MovieVideoEntry.COLUMN_VIDEO_ID + " INTEGER NOT NULL, " +
                 MovieVideoEntry.COLUMN_KEY + " TEXT NOT NULL, " +
+                MovieVideoEntry.COLUMN_NAME + " TEXT NOT NULL, " +
 
                 // Set up the movie id as a foreign key to movie detail table.
                 " FOREIGN KEY (" + MovieVideoEntry.COLUMN_MOVIE_ID + ") REFERENCES " +

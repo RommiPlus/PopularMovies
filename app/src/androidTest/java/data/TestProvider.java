@@ -460,6 +460,7 @@ public class TestProvider {
             movieDetailValues.put(MovieVideoEntry.COLUMN_VIDEO_ID, i);
             movieDetailValues.put(MovieVideoEntry.COLUMN_MOVIE_ID, TestUtilities.TEST_MOVIE_ID);
             movieDetailValues.put(MovieVideoEntry.COLUMN_KEY, "MNSINS" + i);
+            movieDetailValues.put(MovieVideoEntry.COLUMN_NAME, "MNSINS" + i);
             returnContentValues[i] = movieDetailValues;
         }
         return returnContentValues;

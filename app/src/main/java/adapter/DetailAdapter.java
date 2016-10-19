@@ -18,9 +18,10 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import model.MovieDetailInfo;
-import model.Reviews;
-import model.Videos;
+import data.dao.MovieDetailInfo;
+import data.dao.Reviews;
+import data.dao.Videos;
+
 
 /**
  * Created by 123 on 2016/9/22.
@@ -42,6 +43,11 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         mContext = context;
     }
 
+    public void swapData(List<Object> data) {
+        mAdapterData = data;
+        notifyDataSetChanged();
+    }
+
     public static class TrailerHear {
     }
 
@@ -55,11 +61,11 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             return VIEWTYPE_HEADER;
         } else if (data instanceof TrailerHear) {
             return VIEWTYPE_TRAILER_HEADER;
-        } else if (data instanceof Videos.ResultsBean) {
+        } else if (data instanceof Videos) {
             return VIEWTYPE_TRAILER_CONTENT;
         } else if (data instanceof ReviewHeader) {
             return VIEWTYPE_REVIEWS_HEADER;
-        } else if (data instanceof Reviews.ResultsBean) {
+        } else if (data instanceof Reviews) {
             return VIEWTYPE_REVIEWS_CONTENT;
         }
         return VIEWTYPE_ERROR;
@@ -120,7 +126,6 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         if (holder instanceof TrailerContentViewHolder) {
             bindDataToTrailerContentView(data, holder);
-
             return;
         }
 
@@ -132,7 +137,7 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         if (holder instanceof ReviewsViewHolder) {
             ReviewsViewHolder reviewsViewHolder = (ReviewsViewHolder) holder;
-            Reviews.ResultsBean info = (Reviews.ResultsBean) data;
+            Reviews info = (Reviews) data;
             reviewsViewHolder.mReviewerName.setText("A movie review by " + info.getAuthor());
             reviewsViewHolder.mReviewerContent.setText(info.getContent());
             return;
@@ -187,7 +192,7 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     private void bindDataToTrailerContentView(Object data, RecyclerView.ViewHolder holder) {
         TrailerContentViewHolder trailerContentViewHolder = (TrailerContentViewHolder) holder;
-        final Videos.ResultsBean info = (Videos.ResultsBean) data;
+        final Videos info = (Videos) data;
         trailerContentViewHolder.mTrailerNumberTv.setText(info.getName());
         trailerContentViewHolder.mTrailerLl.setOnClickListener(new View.OnClickListener() {
             @Override

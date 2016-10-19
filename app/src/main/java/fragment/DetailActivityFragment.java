@@ -2,14 +2,12 @@ package fragment;
 
 import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -44,17 +42,15 @@ import data.MovieContract.MovieVideoEntry;
 import model.MovieDetailInfo;
 import model.Reviews;
 import model.Videos;
+import util.DetailMovieDataLoader;
+import util.NetworkUtil;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class DetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class DetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Object>> {
     private RecyclerView mRecyclerView;
     private DetailAdapter mDetailAdapter;
-
-    private MovieDetailInfo mMovieDetailInfo;
-    private List<Videos.ResultsBean> mVideoData;
-    private List<Reviews.ResultsBean> mReviews;
 
     List<Object> mAdapterData;
 
@@ -82,7 +78,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         Intent intent = getActivity().getIntent();
         mMovieId = intent.getIntExtra(DetailActivity.DETAIL_MOVIE_INFO, ERROR_MOVIE_ID);
 
-        if (mMovieId != ERROR_MOVIE_ID) {
+        if (mMovieId != ERROR_MOVIE_ID && NetworkUtil.isOnline(getActivity())) {
             queryMovieInfo(mMovieId);
         }
 
@@ -101,19 +97,18 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     }
 
     @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(getContext(), MovieDetailEntry.buildMovieDetailUri(mMovieId),
-                null, null, null, null);
+    public Loader<List<Object>> onCreateLoader(int id, Bundle args) {
+        return new DetailMovieDataLoader(getActivity(), mMovieId);
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
+    public void onLoadFinished(Loader<List<Object>> loader, List<Object> data) {
+        mDetailAdapter.swapData(data);
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
+    public void onLoaderReset(Loader<List<Object>> loader) {
+        mDetailAdapter.swapData(null);
     }
 
     public class FetchMovieDetailInfo extends AsyncTask<Integer, Void, Integer> {
@@ -254,6 +249,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
                 values.put(MovieVideoEntry.COLUMN_VIDEO_ID, movieData.getId());
                 values.put(MovieVideoEntry.COLUMN_MOVIE_ID, videos.getId());
                 values.put(MovieVideoEntry.COLUMN_KEY, movieData.getKey());
+                values.put(MovieVideoEntry.COLUMN_NAME, movieData.getName());
 
                 info.add(values);
             }
