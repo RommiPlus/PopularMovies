@@ -36,7 +36,9 @@ public class TestUtilities {
         contentValues.put(MovieDetailEntry.COLUMN_OVERVIEW, "This is a test overview");
         contentValues.put(MovieDetailEntry.COLUMN_RELEASE_DATE, "2016-09-03");
         contentValues.put(MovieDetailEntry.COLUMN_RUNTIME, TEST_OLD_RUNTIME);
-        contentValues.put(MovieDetailEntry.COLUMN_STAR, Constant.MOVIE_STAR);
+        contentValues.put(MovieDetailEntry.COLUMN_STAR, Constant.IS_STAR);
+        contentValues.put(MovieDetailEntry.COLUMN_POP_MOVIES, Constant.IS_POP_MOVIE);
+        contentValues.put(MovieDetailEntry.COLUMN_TOP_RANKED, Constant.IS_TOP_RANKED);
         contentValues.put(MovieDetailEntry.COLUMN_TITLE, "Wolf coming");
         contentValues.put(MovieDetailEntry.COLUMN_VOTE_AVERAGE, 6.4);
         contentValues.put(MovieDetailEntry.COLUMN_POSTER_PATH, "JUHSIDHOO");
@@ -50,7 +52,9 @@ public class TestUtilities {
         contentValues.put(MovieDetailEntry.COLUMN_OVERVIEW, "This is a test overview");
         contentValues.put(MovieDetailEntry.COLUMN_RELEASE_DATE, "2016-09-03");
         contentValues.put(MovieDetailEntry.COLUMN_RUNTIME, runtime);
-        contentValues.put(MovieDetailEntry.COLUMN_STAR, Constant.MOVIE_STAR);
+        contentValues.put(MovieDetailEntry.COLUMN_STAR, Constant.IS_STAR);
+        contentValues.put(MovieDetailEntry.COLUMN_POP_MOVIES, Constant.IS_POP_MOVIE);
+        contentValues.put(MovieDetailEntry.COLUMN_TOP_RANKED, Constant.IS_TOP_RANKED);
         contentValues.put(MovieDetailEntry.COLUMN_TITLE, "Wolf coming");
         contentValues.put(MovieDetailEntry.COLUMN_VOTE_AVERAGE, 6.4);
         contentValues.put(MovieDetailEntry.COLUMN_POSTER_PATH, "JUHSIDHOO");

@@ -12,8 +12,26 @@ public class MovieDetailInfo {
     private String posterPath;
     private String overview;
     private int star;
+    private int popMovie;
+    private int topRanked;
     private String title;
     private float voteAverage;
+
+    public int getPopMovie() {
+        return popMovie;
+    }
+
+    public void setPopMovie(int popMovie) {
+        this.popMovie = popMovie;
+    }
+
+    public int getTopRanked() {
+        return topRanked;
+    }
+
+    public void setTopRanked(int topRanked) {
+        this.topRanked = topRanked;
+    }
 
     public String getReleaseDate() {
         return releaseDate;

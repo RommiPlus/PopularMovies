@@ -27,6 +27,8 @@ public class CursorUlities {
             info.setPosterPath(cursor.getString(cursor.getColumnIndex(MovieDetailEntry.COLUMN_POSTER_PATH)));
             info.setOverview(cursor.getString(cursor.getColumnIndex(MovieDetailEntry.COLUMN_OVERVIEW)));
             info.setStar(cursor.getInt(cursor.getColumnIndex(MovieDetailEntry.COLUMN_STAR)));
+            info.setPopMovie(cursor.getInt(cursor.getColumnIndex(MovieDetailEntry.COLUMN_POP_MOVIES)));
+            info.setTopRanked(cursor.getInt(cursor.getColumnIndex(MovieDetailEntry.COLUMN_TOP_RANKED)));
             info.setTitle(cursor.getString(cursor.getColumnIndex(MovieDetailEntry.COLUMN_TITLE)));
             info.setVoteAverage(cursor.getFloat(cursor.getColumnIndex(MovieDetailEntry.COLUMN_VOTE_AVERAGE)));
             return info;

@@ -18,9 +18,11 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import data.Constant;
 import data.dao.MovieDetailInfo;
 import data.dao.Reviews;
 import data.dao.Videos;
+import util.Uilities;
 
 
 /**
@@ -171,7 +173,7 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     }
 
     public void bindDataToHeaderView(Object data, RecyclerView.ViewHolder holder) {
-        MovieDetailInfo info = (MovieDetailInfo) data;
+        final MovieDetailInfo info = (MovieDetailInfo) data;
         HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
         headerViewHolder.mMovieTitleTv.setText(info.getTitle());
 
@@ -182,10 +184,13 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         headerViewHolder.mRunTimeTv.setText(info.getRuntime() + "min");
         headerViewHolder.mVoteAeverageTv.setText(String.valueOf(info.getVoteAverage()) + "/10");
         headerViewHolder.mMovieOverView.setText(info.getOverview());
+        headerViewHolder.mMarkAsFavoriteBtn.setChecked(info.getStar() == Constant.IS_STAR);
         headerViewHolder.mMarkAsFavoriteBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
+                if (isChecked) {
+                    Uilities.updateToStarMovie(mContext, info);
+                }
             }
         });
     }

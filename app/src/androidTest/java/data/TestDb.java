@@ -81,6 +81,8 @@ public class TestDb {
         detailColumnHashSet.add(MovieContract.MovieDetailEntry.COLUMN_RUNTIME);
         detailColumnHashSet.add(MovieContract.MovieDetailEntry.COLUMN_VOTE_AVERAGE);
         detailColumnHashSet.add(MovieContract.MovieDetailEntry.COLUMN_STAR);
+        detailColumnHashSet.add(MovieContract.MovieDetailEntry.COLUMN_POP_MOVIES);
+        detailColumnHashSet.add(MovieContract.MovieDetailEntry.COLUMN_TOP_RANKED);
         detailColumnHashSet.add(MovieContract.MovieDetailEntry.COLUMN_POSTER_PATH);
 
         int columnIndex = cursor.getColumnIndex("name");

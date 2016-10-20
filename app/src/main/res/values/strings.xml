@@ -9,6 +9,7 @@
     <string name="order">order</string>
     <string name="popular_movie">popularMovie</string>
     <string name="top_rated">topRated</string>
+    <string name="my_star">star</string>
     <string name="movie_order_settings">movieOrderSetting</string>
     <string name="rank_order">RankOrder</string>
     <string name="select_rank_order">Select Rank Order</string>
@@ -21,11 +22,13 @@
     <array name="rank_entries">
         <item>@string/popular_movie</item>
         <item>@string/top_rated</item>
+        <item>@string/my_star</item>
     </array>
 
     <array name="rank_entry_values">
         <item>@string/popular_movie</item>
         <item>@string/top_rated</item>
+        <item>@string/my_star</item>
     </array>
 
 </resources>

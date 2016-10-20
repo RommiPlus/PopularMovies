@@ -2,6 +2,7 @@ package fragment;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -77,30 +78,50 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         getLoaderManager().initLoader(UNIQUE_LOADER, null, this);
     }
 
+    public void onOderChanged() {
+        updatePopularMovies();
+        getLoaderManager().restartLoader(UNIQUE_LOADER, null, this);
+    }
+
     @Override
     public void onStart() {
         super.onStart();
-
-        if (NetworkUtil.isOnline(getActivity())) {
-            updatePopularMovies();
-        }
+        updatePopularMovies();
     }
 
     private void updatePopularMovies() {
-        String orderUnitInfo = PreferenceManager.getDefaultSharedPreferences(getActivity())
-                .getString(getString(R.string.order), getString(R.string.popular_movie));
+        if (NetworkUtil.isOnline(getActivity())) {
+            String orderInfo = PreferenceManager.getDefaultSharedPreferences(getActivity())
+                    .getString(getString(R.string.order), getString(R.string.popular_movie));
 
-        FetchPopularMovieTask popularMovieTask = new FetchPopularMovieTask();
-        popularMovieTask.execute(orderUnitInfo);
+            FetchPopularMovieTask popularMovieTask = new FetchPopularMovieTask();
+            popularMovieTask.execute(orderInfo);
+        }
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String orderInfo = PreferenceManager.getDefaultSharedPreferences(getActivity())
+                .getString(getString(R.string.order), getString(R.string.popular_movie));
+
+        String selection;
+        String[] selectionArgs;
+        if (orderInfo.equals(getString(R.string.popular_movie))) {
+            selection = MovieDetailEntry.COLUMN_POP_MOVIES + " = ?";
+            selectionArgs = new String[]{String.valueOf(Constant.IS_POP_MOVIE)};
+        } else if (orderInfo.equals(getString(R.string.top_rated))) {
+            selection = MovieDetailEntry.COLUMN_TOP_RANKED + " = ?";
+            selectionArgs = new String[]{String.valueOf(Constant.IS_TOP_RANKED)};
+        } else {
+            selection = MovieDetailEntry.COLUMN_STAR + " = ?";
+            selectionArgs = new String[]{String.valueOf(Constant.IS_STAR)};
+        }
+
         return new CursorLoader(getContext(),
                 MovieDetailEntry.CONTENT_URI,
                 null,
-                null,
-                null,
+                selection,
+                selectionArgs,
                 null);
     }
 
@@ -115,132 +136,150 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     }
 
 
-    public class FetchPopularMovieTask extends AsyncTask<String, Void, Void> {
+public class FetchPopularMovieTask extends AsyncTask<String, Void, Void> {
 
-        private final String LOG_TAG = FetchPopularMovieTask.class.getSimpleName();
+    private final String LOG_TAG = FetchPopularMovieTask.class.getSimpleName();
 
-        /**
-         * Take the String representing the complete forecast in JSON Format and
-         * pull out the data we need to construct the Strings needed for the wireframes.
-         * <p/>
-         * Fortunately parsing is easy:  constructor takes the JSON string and converts it
-         * into an Object hierarchy for us.
-         */
-        private void getMovieDataFromJson(String forecastJsonStr)
-                throws JSONException {
-            Gson data = new GsonBuilder().create();
-            PopularMovie movie = data.fromJson(forecastJsonStr, PopularMovie.class);
-            List<PopularMovie.ResultsBean> results = movie.getResults();
+    /**
+     * Take the String representing the complete forecast in JSON Format and
+     * pull out the data we need to construct the Strings needed for the wireframes.
+     * <p/>
+     * Fortunately parsing is easy:  constructor takes the JSON string and converts it
+     * into an Object hierarchy for us.
+     */
+    private void getMovieDataFromJson(String forecastJsonStr)
+            throws JSONException {
+        Gson data = new GsonBuilder().create();
+        PopularMovie movie = data.fromJson(forecastJsonStr, PopularMovie.class);
+        List<PopularMovie.ResultsBean> results = movie.getResults();
 
-            Vector<ContentValues> info = new Vector<>();
-            for (PopularMovie.ResultsBean movieData : results) {
-                ContentValues values = new ContentValues();
-                values.put(MovieDetailEntry.COLUMN_MOVIE_ID, movieData.getId());
-                values.put(MovieDetailEntry.COLUMN_TITLE, movieData.getTitle());
-                values.put(MovieDetailEntry.COLUMN_OVERVIEW, movieData.getOverview());
-                values.put(MovieDetailEntry.COLUMN_RELEASE_DATE, movieData.getReleaseDate());
-                values.put(MovieDetailEntry.COLUMN_VOTE_AVERAGE, movieData.getVoteAverage());
-                values.put(MovieDetailEntry.COLUMN_POSTER_PATH, movieData.getPosterPath());
-                values.put(MovieDetailEntry.COLUMN_RUNTIME, 0);
-                values.put(MovieDetailEntry.COLUMN_STAR, Constant.MOVIE_UNSTAR);
+        String orderInfo = PreferenceManager.getDefaultSharedPreferences(getActivity())
+                .getString(getString(R.string.order), getString(R.string.popular_movie));
 
-                info.add(values);
-            }
-
-            int inserted = 0;
-            if (results.size() > 0) {
-                ContentValues[] values = new ContentValues[results.size()];
-                info.toArray(values);
-                inserted = getContext().getContentResolver().bulkInsert(MovieDetailEntry.CONTENT_URI, values);
-            }
-
-            Log.d(LOG_TAG, "FetchPopularMovieTask Complete. " + inserted + " Inserted");
+        Vector<ContentValues> info;
+        if (orderInfo.equals(getString(R.string.popular_movie))) {
+            info = createMovieDetailVectors(results, MovieDetailEntry.COLUMN_POP_MOVIES,
+                    Constant.IS_POP_MOVIE);
+        } else {
+            info = createMovieDetailVectors(results, MovieDetailEntry.COLUMN_TOP_RANKED,
+                    Constant.IS_TOP_RANKED);
         }
 
-        @Override
-        protected Void doInBackground(String... params) {
-
-            // If there's no zip code, there's nothing to look up.  Verify size of params.
-            if (params.length == 0) {
-                return null;
-            }
-
-            // These two need to be declared outside the try/catch
-            // so that they can be closed in the finally block.
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-
-            // Will contain the raw JSON response as a string.
-            String populatMovieJsonStr = null;
-
-            String urlSuffix;
-            String page = "1";
-            if (params[0].equals(getString(R.string.popular_movie))) {
-                urlSuffix = "popular";
-            } else {
-                urlSuffix = "top_rated";
-            }
-
+        for (ContentValues value : info) {
             try {
-                Uri builtUri = Uri.parse(Constant.MOVIE_BASE_URL + urlSuffix).buildUpon()
-                        .appendQueryParameter(Constant.API_KEY, BuildConfig.OPEN_POPULAR_MOVIE_API_KEY)
-                        .appendQueryParameter(Constant.PAGE, page)
-                        .build();
-
-                URL url = new URL(builtUri.toString());
-
-                // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-                populatMovieJsonStr = buffer.toString();
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attemping
-                // to parse it.
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
-                    }
-                }
+                getContext().getContentResolver().insert(MovieDetailEntry.CONTENT_URI, value);
+            } catch (SQLException e) {
+                int movieId = value.getAsInteger(MovieDetailEntry.COLUMN_MOVIE_ID);
+                value.remove(MovieDetailEntry.COLUMN_MOVIE_ID);
+                getContext().getContentResolver().update(MovieDetailEntry.CONTENT_URI, value,
+                        MovieDetailEntry.COLUMN_MOVIE_ID + " = ?",
+                        new String[]{String.valueOf(movieId)});
             }
-
-            try {
-                getMovieDataFromJson(populatMovieJsonStr);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
-                e.printStackTrace();
-            }
-            return null;
         }
     }
+
+    private Vector<ContentValues> createMovieDetailVectors(
+            List<PopularMovie.ResultsBean> results, String column, int flag) {
+        Vector<ContentValues> info = new Vector<>();
+        for (PopularMovie.ResultsBean movieData : results) {
+            ContentValues values = new ContentValues();
+            values.put(MovieDetailEntry.COLUMN_MOVIE_ID, movieData.getId());
+            values.put(MovieDetailEntry.COLUMN_TITLE, movieData.getTitle());
+            values.put(MovieDetailEntry.COLUMN_OVERVIEW, movieData.getOverview());
+            values.put(MovieDetailEntry.COLUMN_RELEASE_DATE, movieData.getReleaseDate());
+            values.put(MovieDetailEntry.COLUMN_VOTE_AVERAGE, movieData.getVoteAverage());
+            values.put(MovieDetailEntry.COLUMN_POSTER_PATH, movieData.getPosterPath());
+            values.put(column, flag);
+
+            info.add(values);
+        }
+        return info;
+    }
+
+    @Override
+    protected Void doInBackground(String... params) {
+
+        // If there's no zip code, there's nothing to look up.  Verify size of params.
+        if (params.length == 0) {
+            return null;
+        }
+
+        // These two need to be declared outside the try/catch
+        // so that they can be closed in the finally block.
+        HttpURLConnection urlConnection = null;
+        BufferedReader reader = null;
+
+        // Will contain the raw JSON response as a string.
+        String populatMovieJsonStr = null;
+
+        String urlSuffix;
+        String page = "1";
+        if (params[0].equals(getString(R.string.popular_movie))) {
+            urlSuffix = "popular";
+        } else {
+            urlSuffix = "top_rated";
+        }
+
+        try {
+            Uri builtUri = Uri.parse(Constant.MOVIE_BASE_URL + urlSuffix).buildUpon()
+                    .appendQueryParameter(Constant.API_KEY, BuildConfig.OPEN_POPULAR_MOVIE_API_KEY)
+                    .appendQueryParameter(Constant.PAGE, page)
+                    .build();
+
+            URL url = new URL(builtUri.toString());
+
+            // Create the request to OpenWeatherMap, and open the connection
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+            urlConnection.connect();
+
+            // Read the input stream into a String
+            InputStream inputStream = urlConnection.getInputStream();
+            StringBuffer buffer = new StringBuffer();
+            if (inputStream == null) {
+                // Nothing to do.
+                return null;
+            }
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+                // But it does make debugging a *lot* easier if you print out the completed
+                // buffer for debugging.
+                buffer.append(line + "\n");
+            }
+
+            if (buffer.length() == 0) {
+                // Stream was empty.  No point in parsing.
+                return null;
+            }
+            populatMovieJsonStr = buffer.toString();
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Error ", e);
+            // If the code didn't successfully get the weather data, there's no point in attemping
+            // to parse it.
+            return null;
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (final IOException e) {
+                    Log.e(LOG_TAG, "Error closing stream", e);
+                }
+            }
+        }
+
+        try {
+            getMovieDataFromJson(populatMovieJsonStr);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, e.getMessage(), e);
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
 }

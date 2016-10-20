@@ -299,7 +299,9 @@ public class TestProvider {
             movieDetailValues.put(MovieDetailEntry.COLUMN_MOVIE_ID, locationRowId + i);
             movieDetailValues.put(MovieDetailEntry.COLUMN_TITLE, "item: " + i);
             movieDetailValues.put(MovieDetailEntry.COLUMN_VOTE_AVERAGE, 6.6);
-            movieDetailValues.put(MovieDetailEntry.COLUMN_STAR, Constant.MOVIE_UNSTAR);
+            movieDetailValues.put(MovieDetailEntry.COLUMN_STAR, Constant.NOT_UNSTAR);
+            movieDetailValues.put(MovieDetailEntry.COLUMN_POP_MOVIES, Constant.IS_POP_MOVIE);
+            movieDetailValues.put(MovieDetailEntry.COLUMN_TOP_RANKED, Constant.IS_TOP_RANKED);
             movieDetailValues.put(MovieDetailEntry.COLUMN_OVERVIEW, "This is item: " + i);
             movieDetailValues.put(MovieDetailEntry.COLUMN_RELEASE_DATE, "2016-12-06");
             movieDetailValues.put(MovieDetailEntry.COLUMN_RUNTIME, 122);

@@ -15,6 +15,15 @@ public class Constant {
     // 	ISO 639-1 code.
     public static final String LANGUAGE = "language";
 
-    public static final int MOVIE_STAR = 0;
-    public static final int MOVIE_UNSTAR = 1;
+    private static final int NOT_CHECKED = 0;
+    private static final int CHECKED = 1;
+
+    public static final int NOT_UNSTAR = NOT_CHECKED;
+    public static final int IS_STAR = CHECKED;
+
+    public static final int NOT_POP_MOVIE = NOT_CHECKED;
+    public static final int IS_POP_MOVIE = CHECKED;
+
+    public static final int NOT_TOP_RANKED = NOT_CHECKED;
+    public static final int IS_TOP_RANKED = CHECKED;
 }

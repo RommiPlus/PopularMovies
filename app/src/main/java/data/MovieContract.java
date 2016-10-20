@@ -50,6 +50,8 @@ public class MovieContract {
 
         // When query movie data by this column, order movie data by release date desc.
         public static final String COLUMN_STAR = "star";
+        public static final String COLUMN_POP_MOVIES = "pop_movies";
+        public static final String COLUMN_TOP_RANKED = "top_ranked";
 
         public static Uri buildMovieDetailUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
