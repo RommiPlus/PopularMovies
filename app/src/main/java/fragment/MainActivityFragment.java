@@ -26,10 +26,12 @@ import sync.MovieSyncAdapter;
  * A placeholder fragment containing a simple view.
  */
 public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private int mPosition = GridView.INVALID_POSITION;
     private GridView mMovieGv;
     private MoviePreviewAdapter mMovieAdapter;
 
     private final int UNIQUE_LOADER = 0;
+    private final String SCROLLED_POSITION = "SCROLLED_POSITION";
 
     public MainActivityFragment() {
     }
@@ -37,6 +39,10 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if (savedInstanceState != null && savedInstanceState.containsKey(SCROLLED_POSITION)) {
+            mPosition = savedInstanceState.getInt(SCROLLED_POSITION);
+        }
+
         mMovieAdapter = new MoviePreviewAdapter(getContext(), null, 0);
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         mMovieGv = (GridView) view.findViewById(R.id.movie_gv);
@@ -44,12 +50,21 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         mMovieGv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                mPosition = position;
                 Cursor c = (Cursor) parent.getItemAtPosition(position);
                 int index = c.getColumnIndex(MovieDetailEntry.COLUMN_MOVIE_ID);
                 DetailActivity.actionStart(getActivity(), c.getInt(index));
             }
         });
         return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (mPosition != GridView.INVALID_POSITION) {
+            outState.putInt(SCROLLED_POSITION, mPosition);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -102,6 +117,10 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mMovieAdapter.swapCursor(data);
+
+        if (mPosition != GridView.INVALID_POSITION) {
+            mMovieGv.smoothScrollToPosition(mPosition);
+        }
     }
 
     @Override
