@@ -189,8 +189,10 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    Uilities.updateToStarMovie(mContext, info);
+                    Uilities.updateStarMovie(mContext, Constant.IS_STAR, info.getMovieId());
+                    return;
                 }
+                Uilities.updateStarMovie(mContext, Constant.NOT_STAR, info.getMovieId());
             }
         });
     }

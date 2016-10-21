@@ -18,7 +18,7 @@ public class Constant {
     private static final int NOT_CHECKED = 0;
     private static final int CHECKED = 1;
 
-    public static final int NOT_UNSTAR = NOT_CHECKED;
+    public static final int NOT_STAR = NOT_CHECKED;
     public static final int IS_STAR = CHECKED;
 
     public static final int NOT_POP_MOVIE = NOT_CHECKED;
