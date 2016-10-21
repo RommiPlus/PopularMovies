@@ -55,9 +55,18 @@ public class DataSyncIntentService extends IntentService {
             return;
         }
 
-        FetchMovieDetailInfo(movieId);
-        fetchVideos(movieId);
-        fetchReviews(movieId);
+        String videoInfo = fetchVideos(movieId);
+        String reviewsInfo = fetchReviews(movieId);
+        String movieDetailInfo = FetchMovieDetailInfo(movieId);
+
+        try {
+            insertReviewsDataToJson(reviewsInfo);
+            insertVideoDataToDb(videoInfo);
+            insertMovieDetailDataToDb(movieDetailInfo);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -67,7 +76,7 @@ public class DataSyncIntentService extends IntentService {
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
-    private int getMovieDetailDataFromJson(String forecastJsonStr)
+    private int insertMovieDetailDataToDb(String forecastJsonStr)
             throws JSONException {
         Gson data = new GsonBuilder().create();
         MovieDetailInfo info = data.fromJson(forecastJsonStr, MovieDetailInfo.class);
@@ -81,7 +90,7 @@ public class DataSyncIntentService extends IntentService {
         return info.getId();
     }
 
-    public void FetchMovieDetailInfo(int movieId) {
+    public String FetchMovieDetailInfo(int movieId) {
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
         HttpURLConnection urlConnection = null;
@@ -107,7 +116,7 @@ public class DataSyncIntentService extends IntentService {
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
                 // Nothing to do.
-                return;
+                return null;
             }
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -121,14 +130,14 @@ public class DataSyncIntentService extends IntentService {
 
             if (buffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
-                return;
+                return null;
             }
             populatMovieJsonStr = buffer.toString();
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
-            return;
+            return null;
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -142,12 +151,7 @@ public class DataSyncIntentService extends IntentService {
             }
         }
 
-        try {
-            getMovieDetailDataFromJson(populatMovieJsonStr);
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, e.getMessage(), e);
-            e.printStackTrace();
-        }
+        return populatMovieJsonStr;
     }
 
     /**
@@ -157,7 +161,7 @@ public class DataSyncIntentService extends IntentService {
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
-    private int getVideoDataFromJson(String forecastJsonStr)
+    private int insertVideoDataToDb(String forecastJsonStr)
             throws JSONException {
         Gson data = new GsonBuilder().create();
         Videos videos = data.fromJson(forecastJsonStr, Videos.class);
@@ -185,7 +189,7 @@ public class DataSyncIntentService extends IntentService {
         return videos.getId();
     }
 
-    public void fetchVideos(int movieId) {
+    public String fetchVideos(int movieId) {
 
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
@@ -213,7 +217,7 @@ public class DataSyncIntentService extends IntentService {
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
                 // Nothing to do.
-                return;
+                return null;
             }
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -227,14 +231,14 @@ public class DataSyncIntentService extends IntentService {
 
             if (buffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
-                return;
+                return null;
             }
             populatMovieJsonStr = buffer.toString();
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
-            return;
+            return null;
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -248,13 +252,7 @@ public class DataSyncIntentService extends IntentService {
             }
         }
 
-        try {
-            getVideoDataFromJson(populatMovieJsonStr);
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, e.getMessage(), e);
-            e.printStackTrace();
-        }
-
+        return populatMovieJsonStr;
     }
 
     /**
@@ -264,7 +262,7 @@ public class DataSyncIntentService extends IntentService {
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
-    private void getReviewsDataFromJson(String forecastJsonStr)
+    private void insertReviewsDataToJson(String forecastJsonStr)
             throws JSONException {
         Gson data = new GsonBuilder().create();
         Reviews reviews = data.fromJson(forecastJsonStr, Reviews.class);
@@ -291,7 +289,7 @@ public class DataSyncIntentService extends IntentService {
         Log.d(LOG_TAG, "FetchPopularMovieTask Complete. " + inserted + " Inserted");
     }
 
-    public void fetchReviews(int movieId) {
+    public String fetchReviews(int movieId) {
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
         HttpURLConnection urlConnection = null;
@@ -318,7 +316,7 @@ public class DataSyncIntentService extends IntentService {
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
                 // Nothing to do.
-                return;
+                return null;
             }
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -332,14 +330,14 @@ public class DataSyncIntentService extends IntentService {
 
             if (buffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
-                return;
+                return null;
             }
             populatMovieJsonStr = buffer.toString();
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
-            return;
+            return null;
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -353,12 +351,6 @@ public class DataSyncIntentService extends IntentService {
             }
         }
 
-        try {
-            getReviewsDataFromJson(populatMovieJsonStr);
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, e.getMessage(), e);
-            e.printStackTrace();
-        }
-
+        return populatMovieJsonStr;
     }
 }

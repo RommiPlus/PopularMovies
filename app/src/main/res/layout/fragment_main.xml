@@ -12,6 +12,7 @@
         android:numColumns="auto_fit"
         android:verticalSpacing="0dp"
         android:horizontalSpacing="0dp"
+        android:drawSelectorOnTop="true"
         android:stretchMode="columnWidth"
         android:layout_height="match_parent"/>
 

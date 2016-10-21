@@ -82,7 +82,7 @@ public class DetailMovieDataLoader extends AsyncTaskLoader<List<Object>> {
                         MovieDetailEntry.COLUMN_MOVIE_ID + " = ?",
                         new String[]{String.valueOf(mMovieId)},
                         null);
-
+        registerContentObserver(cursor);
         return cursor;
     }
 
@@ -93,7 +93,6 @@ public class DetailMovieDataLoader extends AsyncTaskLoader<List<Object>> {
                         MovieVideoEntry.COLUMN_MOVIE_ID + " = ?",
                         new String[]{String.valueOf(mMovieId)},
                         null);
-
         return cursor;
     }
 
@@ -104,8 +103,6 @@ public class DetailMovieDataLoader extends AsyncTaskLoader<List<Object>> {
                         MovieReviewsEntry.COLUMN_MOVIE_ID + " = ?",
                         new String[]{String.valueOf(mMovieId)},
                         null);
-
-        registerContentObserver(cursor);
         return cursor;
     }
 
