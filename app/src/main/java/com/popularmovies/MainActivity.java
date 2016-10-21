@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import fragment.MainActivityFragment;
+import sync.MovieSyncAdapter;
 
 public class MainActivity extends AppCompatActivity {
     private String mOrderInfo;
@@ -20,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        MovieSyncAdapter.initializeSyncAdapter(this);
     }
 
     @Override
