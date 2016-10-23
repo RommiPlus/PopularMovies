@@ -55,14 +55,22 @@ public class DataSyncIntentService extends IntentService {
             return;
         }
 
+        String movieDetailInfo = FetchMovieDetailInfo(movieId);
         String videoInfo = fetchVideos(movieId);
         String reviewsInfo = fetchReviews(movieId);
-        String movieDetailInfo = FetchMovieDetailInfo(movieId);
 
         try {
-            insertReviewsDataToJson(reviewsInfo);
-            insertVideoDataToDb(videoInfo);
-            insertMovieDetailDataToDb(movieDetailInfo);
+            if (movieDetailInfo != null) {
+                insertMovieDetailDataToDb(movieDetailInfo);
+            }
+
+            if (reviewsInfo != null) {
+                insertReviewsDataToDb(reviewsInfo);
+            }
+
+            if (videoInfo != null) {
+                insertVideoDataToDb(videoInfo);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -262,7 +270,7 @@ public class DataSyncIntentService extends IntentService {
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
-    private void insertReviewsDataToJson(String forecastJsonStr)
+    private void insertReviewsDataToDb(String forecastJsonStr)
             throws JSONException {
         Gson data = new GsonBuilder().create();
         Reviews reviews = data.fromJson(forecastJsonStr, Reviews.class);
