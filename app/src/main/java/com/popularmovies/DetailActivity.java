@@ -3,9 +3,12 @@ package com.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+
+import fragment.DetailActivityFragment;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -29,6 +32,15 @@ public class DetailActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
+    }
+
+    @Override
+    public void onAttachFragment(Fragment fragment) {
+        if (fragment instanceof DetailActivityFragment) {
+            ((DetailActivityFragment) fragment)
+                    .setData(getIntent().getIntExtra(DETAIL_MOVIE_INFO, -1));
+        }
+        super.onAttachFragment(fragment);
     }
 
     @Override

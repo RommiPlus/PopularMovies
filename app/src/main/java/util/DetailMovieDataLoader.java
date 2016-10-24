@@ -34,15 +34,14 @@ public class DetailMovieDataLoader extends AsyncTaskLoader<List<Object>> {
     @Override
     public List<Object> loadInBackground() {
         MovieDetailInfo info = CursorUlities.cursorToMovieDetailInfo(getMovieDetailCursor());
-        if (info == null) {
-            throw new IllegalArgumentException("Movie detail info should not be null");
-        }
-
         List<Videos> videos = CursorUlities.cursorToMovieVideos(getMovieVideoCursor());
         List<Reviews> reviews = CursorUlities.cursorToMovieReivews(getMovieReviewsCursor());
 
         ArrayList<Object> list = new ArrayList<>();
-        list.add(info);
+        if (info != null) {
+            list.add(info);
+        }
+
         list.add(new TrailerHear());
         if (videos != null) {
             list.addAll(videos);
@@ -93,6 +92,7 @@ public class DetailMovieDataLoader extends AsyncTaskLoader<List<Object>> {
                         MovieVideoEntry.COLUMN_MOVIE_ID + " = ?",
                         new String[]{String.valueOf(mMovieId)},
                         null);
+        registerContentObserver(cursor);
         return cursor;
     }
 
@@ -103,6 +103,7 @@ public class DetailMovieDataLoader extends AsyncTaskLoader<List<Object>> {
                         MovieReviewsEntry.COLUMN_MOVIE_ID + " = ?",
                         new String[]{String.valueOf(mMovieId)},
                         null);
+        registerContentObserver(cursor);
         return cursor;
     }
 

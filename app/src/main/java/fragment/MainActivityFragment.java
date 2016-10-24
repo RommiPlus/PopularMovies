@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
-import com.popularmovies.DetailActivity;
+import com.popularmovies.MainActivity;
 import com.popularmovies.R;
 
 import adapter.MoviePreviewAdapter;
@@ -31,9 +31,14 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     private MoviePreviewAdapter mMovieAdapter;
 
     private final int UNIQUE_LOADER = 0;
+    private boolean mIsFirstLoad = true;
     private final String SCROLLED_POSITION = "SCROLLED_POSITION";
 
     public MainActivityFragment() {
+    }
+
+    public interface OnItemChangedListener {
+        void onItemClicked(int movieId);
     }
 
     @Override
@@ -52,8 +57,9 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mPosition = position;
                 Cursor c = (Cursor) parent.getItemAtPosition(position);
-                int index = c.getColumnIndex(MovieDetailEntry.COLUMN_MOVIE_ID);
-                DetailActivity.actionStart(getActivity(), c.getInt(index));
+                int movieId = c.getInt(c.getColumnIndex(MovieDetailEntry.COLUMN_MOVIE_ID));
+
+                ((MainActivity) getActivity()).onItemClicked(movieId);
             }
         });
         return view;
@@ -74,6 +80,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     }
 
     public void onOderChanged() {
+        mIsFirstLoad = true;
         updatePopularMovies();
         getLoaderManager().restartLoader(UNIQUE_LOADER, null, this);
     }
@@ -118,16 +125,22 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mMovieAdapter.swapCursor(data);
 
-        if (mPosition != GridView.INVALID_POSITION) {
-            mMovieGv.smoothScrollToPosition(mPosition);
+        if (mIsFirstLoad && data.moveToFirst()) {
+            mPosition = 0;
+            mMovieGv.performItemClick(mMovieGv.getAdapter().getView(mPosition, null, null),
+                    mPosition,
+                    mMovieGv.getAdapter().getItemId(mPosition));
+
+            mIsFirstLoad = false;
         }
+
+        mMovieGv.smoothScrollToPosition(mPosition);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mMovieAdapter.swapCursor(null);
     }
-
 
 
 }

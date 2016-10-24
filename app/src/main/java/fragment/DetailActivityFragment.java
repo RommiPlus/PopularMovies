@@ -1,6 +1,5 @@
 package fragment;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.popularmovies.DetailActivity;
 import com.popularmovies.R;
 
 import java.util.ArrayList;
@@ -32,11 +30,22 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
     List<Object> mAdapterData;
 
-    private static final int ERROR_MOVIE_ID = -1;
-
     private final int DETAIL_ID = 0;
 
     private int mMovieId;
+
+    public void setData(int movieId) {
+        mMovieId = movieId;
+        queryMovieInfo(movieId);
+
+        Loader<List<Object>> loader = getLoaderManager().getLoader(DETAIL_ID);
+        if (loader != null) {
+            getLoaderManager().restartLoader(DETAIL_ID, null, this);
+            return;
+        }
+
+        getLoaderManager().initLoader(DETAIL_ID, null, this);
+    }
 
     public DetailActivityFragment() {
     }
@@ -53,24 +62,18 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         mRecyclerView.setAdapter(mDetailAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        Intent intent = getActivity().getIntent();
-        mMovieId = intent.getIntExtra(DetailActivity.DETAIL_MOVIE_INFO, ERROR_MOVIE_ID);
-
-        if (mMovieId != ERROR_MOVIE_ID && NetworkUtil.isOnline(getActivity())) {
-            queryMovieInfo(mMovieId);
-        }
-
         return view;
     }
 
     private void queryMovieInfo(int movieId) {
-        DataSyncIntentService.startService(getActivity(), movieId);
+        if (NetworkUtil.isOnline(getActivity())) {
+            DataSyncIntentService.startService(getActivity(), movieId);
+        }
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(DETAIL_ID, null, this);
     }
 
     @Override
@@ -87,5 +90,4 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     public void onLoaderReset(Loader<List<Object>> loader) {
         mDetailAdapter.swapData(null);
     }
-
 }
