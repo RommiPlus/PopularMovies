@@ -58,11 +58,6 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
                 mf.onOderChanged();
             }
 
-//            DetailActivityFragment df = (DetailActivityFragment) getSupportFragmentManager()
-//                    .findFragmentByTag(DETAIL_FRAGMENT);
-//            if (null != df) {
-//                df.onOderChanged();
-//            }
             mOrderInfo = orderInfo;
         }
 
@@ -88,5 +83,15 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         }
 
         DetailActivity.actionStart(this, movieId);
+    }
+
+    @Override
+    public void onNewDataReady(int movieId) {
+        if (mTwoPlane) {
+            DetailActivityFragment fragment = (DetailActivityFragment)
+                    getSupportFragmentManager().findFragmentByTag(DETAIL_FRAGMENT);
+            fragment.setData(movieId);
+            return;
+        }
     }
 }

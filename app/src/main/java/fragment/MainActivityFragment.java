@@ -39,6 +39,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     public interface OnItemChangedListener {
         void onItemClicked(int movieId);
+
+        void onNewDataReady(int movieId);
     }
 
     @Override
@@ -59,7 +61,12 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 Cursor c = (Cursor) parent.getItemAtPosition(position);
                 int movieId = c.getInt(c.getColumnIndex(MovieDetailEntry.COLUMN_MOVIE_ID));
 
-                ((MainActivity) getActivity()).onItemClicked(movieId);
+                if (mIsFirstLoad) {
+                    ((MainActivity) getActivity()).onNewDataReady(movieId);
+                    mIsFirstLoad = false;
+                } else {
+                    ((MainActivity) getActivity()).onItemClicked(movieId);
+                }
             }
         });
         return view;
@@ -81,6 +88,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     public void onOderChanged() {
         mIsFirstLoad = true;
+        mPosition = 0;
+
         updatePopularMovies();
         getLoaderManager().restartLoader(UNIQUE_LOADER, null, this);
     }
@@ -125,13 +134,15 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mMovieAdapter.swapCursor(data);
 
-        if (mIsFirstLoad && data.moveToFirst()) {
+        if (mPosition == GridView.INVALID_POSITION) {
             mPosition = 0;
+        }
+
+        if (mIsFirstLoad && data.moveToFirst()) {
             mMovieGv.performItemClick(mMovieGv.getAdapter().getView(mPosition, null, null),
                     mPosition,
                     mMovieGv.getAdapter().getItemId(mPosition));
 
-            mIsFirstLoad = false;
         }
 
         mMovieGv.smoothScrollToPosition(mPosition);
